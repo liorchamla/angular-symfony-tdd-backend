@@ -41,8 +41,7 @@ class InvoicesTest extends ApiTestCase
 
         // Then we should receive JSON response
         static::assertResponseIsSuccessful();
-        static::assertResponseHeaderSame('Content-Type', 'application/json; charset=utf-8');
-        static::assertJson(static::$client->getResponse()->getContent());
+        static::assertJsonResponse();
 
         // And we should see the Invoice data
         $data = static::getJsonResponseData();
@@ -60,8 +59,12 @@ class InvoicesTest extends ApiTestCase
     {
         // Given we have a new invoice
         $data = [
-            'amount' => 666,
             'description' => 'MOCK_INVOICE_DESCRIPTION',
+            'lines' => [
+                ['description' => 'MOCK_LINE_1', 'amount' => 10],
+                ['description' => 'MOCK_LINE_2', 'amount' => 20],
+                ['description' => 'MOCK_LINE_3', 'amount' => 30]
+            ]
         ];
 
         // When we call /api/invoices with a POST request
@@ -74,9 +77,16 @@ class InvoicesTest extends ApiTestCase
         // And we should see the Invoice data
         $json = static::getJsonResponseData();
         static::assertEquals($data['description'], $json->description);
-        static::assertEquals($data['amount'], $json->amount);
+        static::assertEquals(60, $json->amount);
         static::assertNotNull($json->id);
         static::assertNotNull($json->createdAt);
+        // And lines should now be available too
+        static::assertCount(3, $json->lines);
+
+        foreach ($data['lines'] as $index => $line) {
+            static::assertEquals($line['description'], $json->lines[$index]->description);
+            static::assertEquals($line['amount'], $json->lines[$index]->amount);
+        }
 
         // And the new invoice should be in the database with a setted createdAt
         $invoice = self::$container->get(InvoiceRepository::class)->findOneBy(['description' => 'MOCK_INVOICE_DESCRIPTION']);
@@ -93,7 +103,10 @@ class InvoicesTest extends ApiTestCase
         // And we have modified data
         $updatedData = [
             'description' => 'MOCK_UPDATED_DATA',
-            'amount' => 666
+            'lines' => [
+                ['description' => 'MOCK_UPDATED_LINE1', 'amount' => 20],
+                ['description' => 'MOCK_UPDATED_LINE2', 'amount' => 30],
+            ]
         ];
 
         // When we call /api/invoices/{id} with PUT method
@@ -106,14 +119,13 @@ class InvoicesTest extends ApiTestCase
         // And the response should contain new data
         $json = static::getJsonResponseData();
         static::assertEquals($updatedData['description'], $json->description);
-        static::assertEquals($updatedData['amount'], $json->amount);
 
         // And invoice should be updated in database
         $updatedInvoice = static::$container->get(InvoiceRepository::class)->findOneBy([
             'description' => 'MOCK_UPDATED_DATA'
         ]);
         static::assertNotNull($updatedInvoice);
-        static::assertEquals($updatedData['amount'], $updatedInvoice->getAmount());
+        static::assertEquals(50, $updatedInvoice->getAmount());
     }
 
     /** @test */
