@@ -8,3 +8,6 @@ api_platform:
   formats:
     json:
       mime_types: ['application/json']
+  error_formats:
+    jsonproblem:
+      mime_types: ['application/json']
