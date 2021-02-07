@@ -42,8 +42,16 @@ class User implements UserInterface
 
     private $plainPassword;
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $roles = [];
+
     public function getRoles()
     {
+        $this->roles[] = 'ROLE_USER';
+
+        return array_unique($this->roles);
     }
 
     public function getSalt()
@@ -108,6 +116,13 @@ class User implements UserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function setRoles(?array $roles = []): self
+    {
+        $this->roles = $roles;
 
         return $this;
     }

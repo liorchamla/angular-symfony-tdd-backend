@@ -13,9 +13,11 @@ class UsersFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $manager->persist((new User)
-            ->setEmail("admin@mail.com")
-            ->setPlainPassword("p4ssword")
-            ->setFullName("admin"));
+                ->setEmail("admin@mail.com")
+                ->setPlainPassword("p4ssword")
+                ->setFullName("admin")
+                ->setRoles(['ROLE_ADMIN'])
+        );
 
         $manager->persist((new User)
             ->setEmail("jerome@mail.com")

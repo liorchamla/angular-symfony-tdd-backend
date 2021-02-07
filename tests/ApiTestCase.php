@@ -22,7 +22,13 @@ class ApiTestCase extends WebTestCase
         static::ensureClientIsBooted();
 
         static::assertJson(static::$client->getResponse()->getContent());
-        static::assertResponseHeaderSame('Content-Type', 'application/json; charset=utf-8');
+
+        $availableContentTypes = [
+            'application/json; charset=utf-8',
+            'application/json'
+        ];
+
+        static::assertContains(self::$client->getResponse()->headers->get('Content-Type'), $availableContentTypes);
     }
 
     protected static function getJsonResponseData()

@@ -5,15 +5,36 @@ security:
       algorithm: auto
   # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
   providers:
-    users_in_memory: { memory: null }
+    users_in_database:
+      entity:
+        class: 'App\Entity\User'
+        property: email
+
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
+
+    login:
+      pattern: ^/api/login
+      stateless: true
+      anonymous: true
+      json_login:
+        check_path: /api/login
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        username_path: email
+
+    api:
+      pattern: ^/api
+      anonymous: true
+      stateless: true
+      guard:
+        authenticators:
+          - lexik_jwt_authentication.jwt_token_authenticator
     main:
       anonymous: true
       lazy: true
-      provider: users_in_memory
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#firewalls-authentication
