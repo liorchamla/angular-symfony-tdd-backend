@@ -11,3 +11,6 @@ api_platform:
   error_formats:
     jsonproblem:
       mime_types: ['application/json']
+  collection:
+    pagination:
+      enabled: false

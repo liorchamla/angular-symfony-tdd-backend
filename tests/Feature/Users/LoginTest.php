@@ -11,7 +11,7 @@ class LoginTest extends ApiTestCase
     public function it_can_login_existing_user()
     {
         // Given we have a user in the database
-        $user = static::$container->get(UserRepository::class)->findOneBy([]);
+        $user = static::getRandomUser();
 
         // And same login data
         $loginData = [
@@ -35,7 +35,7 @@ class LoginTest extends ApiTestCase
     public function it_sends_all_wanted_data_inside_jwt_token()
     {
         // Given we have a user (admin@mail.com)
-        $user = self::$container->get(UserRepository::class)->findOneBy(['email' => 'admin@mail.com']);
+        $user = self::getUserByEmail('admin@mail.com');
 
         // And we setup it's data to login
         $userData = [

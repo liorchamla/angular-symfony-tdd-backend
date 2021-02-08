@@ -46,6 +46,13 @@ class Invoice
      */
     private $lines;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="invoices")
+     * @ORM\JoinColumn(nullable=false)
+     * @Groups({"invoiceRead"})
+     */
+    private $user;
+
     public function __construct()
     {
         $this->lines = new ArrayCollection();
@@ -124,6 +131,18 @@ class Invoice
                 $line->setInvoice(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }

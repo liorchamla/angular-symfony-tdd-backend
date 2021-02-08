@@ -42,7 +42,7 @@ class UsersTest extends ApiTestCase
     public function it_can_edit_a_user()
     {
         // Given we have a user in the database
-        $user = static::$container->get(UserRepository::class)->findOneBy([]);
+        $user = static::getRandomUser();
 
         // And an updated data
         $updatedData = [
@@ -72,8 +72,7 @@ class UsersTest extends ApiTestCase
     public function it_can_remove_a_user()
     {
         // Given we have a user in the database
-        $userRepository = static::$container->get(UserRepository::class);
-        $user = $userRepository->findOneBy([]);
+        $user = static::getRandomUser();
         $userId = $user->getId();
 
         // When we call /api/users/{id} with method DELETE
@@ -83,7 +82,7 @@ class UsersTest extends ApiTestCase
         static::assertResponseIsSuccessful();
 
         // And the user should not be in the database anymore
-        $deletedUser = $userRepository->find($userId);
+        $deletedUser = static::getUserById($userId);
         static::assertNull($deletedUser);
     }
 
@@ -91,8 +90,7 @@ class UsersTest extends ApiTestCase
     public function it_cant_register_a_user_if_email_is_already_taken()
     {
         // Given we have a user with email "jerome@mail.com" in the database
-        $userRepository = static::$container->get(UserRepository::class);
-        $jerome = $userRepository->findOneBy(['email' => 'jerome@mail.com']);
+        $jerome = static::getUserByEmail('jerome@mail.com');
 
         // And an other user who wants to register the same email
         $data = [

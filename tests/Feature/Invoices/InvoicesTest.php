@@ -10,13 +10,16 @@ class InvoicesTest extends ApiTestCase
 {
 
     /** @test */
-    public function it_displays_json_data_for_an_invoice()
+    public function it_displays_json_data_for_an_invoice_as_an_authenticated_user_and_owner()
     {
+        // As an authenticated user
+        $user = static::actAsAuthenticated();
+
         // Given there is an invoice in the database 
-        $invoice = self::$container->get(InvoiceRepository::class)->findOneBy([]);
+        $invoice = $user->getRandomInvoice();
 
         // When we call /api/invoices/{id}
-        static::$client->request('GET', '/api/invoices/' . $invoice->getId());
+        static::jsonRequest('GET', '/api/invoices/' . $invoice->getId());
 
         // Then we should receive JSON response
         static::assertResponseIsSuccessful();
@@ -30,14 +33,18 @@ class InvoicesTest extends ApiTestCase
         static::assertEquals($invoice->getCreatedAt()->format(DateTimeInterface::RFC3339), $data->createdAt);
     }
 
+
+
     /** @test */
-    public function it_displays_json_data_for_all_invoices()
+    public function it_displays_json_data_for_all_invoices_as_an_authenticated_user()
     {
+        $user = static::actAsAuthenticated();
+
         // Given there are invoices in the database 
-        $invoices = self::$container->get(InvoiceRepository::class)->findAll();
+        $invoices = $user->getInvoices();
 
         // When we call /api/invoices/{id}
-        static::$client->request('GET', '/api/invoices');
+        static::jsonRequest('GET', '/api/invoices');
 
         // Then we should receive JSON response
         static::assertResponseIsSuccessful();
@@ -45,6 +52,8 @@ class InvoicesTest extends ApiTestCase
 
         // And we should see the Invoice data
         $data = static::getJsonResponseData();
+
+        static::assertCount(count($invoices), $data);
 
         foreach ($invoices as $index => $invoice) {
             static::assertEquals($invoice->getDescription(), $data[$index]->description);
@@ -54,9 +63,13 @@ class InvoicesTest extends ApiTestCase
         }
     }
 
+
+
     /** @test */
-    public function it_can_create_a_new_invoice()
+    public function it_can_create_a_new_invoice_as_an_authenticated_user()
     {
+        $user = static::actAsAuthenticated();
+
         // Given we have a new invoice
         $data = [
             'description' => 'MOCK_INVOICE_DESCRIPTION',
@@ -67,7 +80,7 @@ class InvoicesTest extends ApiTestCase
             ]
         ];
 
-        // When we call /api/invoices with a POST request
+        // When we call /api/invoices with a POST request 
         static::jsonRequest('POST', '/api/invoices', $data);
 
         // Then we receive confirmation and JSON data
@@ -80,6 +93,10 @@ class InvoicesTest extends ApiTestCase
         static::assertEquals(60, $json->amount);
         static::assertNotNull($json->id);
         static::assertNotNull($json->createdAt);
+        static::assertNotNull($json->user);
+        static::assertEquals($user->getEmail(), $json->user->email);
+        static::assertEquals($user->getFullName(), $json->user->fullName);
+        static::assertEquals($user->getRoles(), $json->user->roles);
         // And lines should now be available too
         static::assertCount(3, $json->lines);
 
@@ -95,10 +112,11 @@ class InvoicesTest extends ApiTestCase
     }
 
     /** @test */
-    public function it_can_edit_an_invoice()
+    public function it_can_edit_an_invoice_as_an_authenticated_and_owner()
     {
         // Given we have an invoice in the database
-        $invoice = static::$container->get(InvoiceRepository::class)->findOneBy([]);
+        $user = static::actAsAuthenticated();
+        $invoice = $user->getRandomInvoice();
 
         // And we have modified data
         $updatedData = [
@@ -129,10 +147,12 @@ class InvoicesTest extends ApiTestCase
     }
 
     /** @test */
-    public function it_can_delete_an_invoice()
+    public function it_can_delete_an_invoice_as_an_authenticated_user_and_owner()
     {
+        $user = static::actAsAuthenticated();
+
         // Given we have an invoice in the database
-        $invoice = static::$container->get(InvoiceRepository::class)->findOneBy([]);
+        $invoice = $user->getRandomInvoice();
 
         $invoiceId = $invoice->getId();
 

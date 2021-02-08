@@ -4,13 +4,18 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
- * @ApiResource
+ * @ApiResource(
+ *  normalizationContext={"groups":{"userRead"}}
+ * )
  * @UniqueEntity(
  *      fields={"email"}, 
  *      message="Vous ne pouvez pas créer un compte avec cette adresse email"
@@ -27,11 +32,13 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"userRead", "invoiceRead"})
      */
     private $fullName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"userRead", "invoiceRead"})
      */
     private $email;
 
@@ -44,8 +51,27 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="array", nullable=true)
+     * @Groups({"userRead", "invoiceRead"})
      */
     private $roles = [];
+
+    /**
+     * @ORM\OneToMany(targetEntity=Invoice::class, mappedBy="user", orphanRemoval=true)
+     * @Groups({"userRead"})
+     */
+    private $invoices;
+
+    public function __construct()
+    {
+        $this->invoices = new ArrayCollection();
+    }
+
+    public function getRandomInvoice(): Invoice
+    {
+        $random = mt_rand(0, $this->invoices->count() - 1);
+
+        return $this->invoices->get($random);
+    }
 
     public function getRoles()
     {
@@ -123,6 +149,36 @@ class User implements UserInterface
     public function setRoles(?array $roles = []): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Invoice[]
+     */
+    public function getInvoices(): Collection
+    {
+        return $this->invoices;
+    }
+
+    public function addInvoice(Invoice $invoice): self
+    {
+        if (!$this->invoices->contains($invoice)) {
+            $this->invoices[] = $invoice;
+            $invoice->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvoice(Invoice $invoice): self
+    {
+        if ($this->invoices->removeElement($invoice)) {
+            // set the owning side to null (unless already changed)
+            if ($invoice->getUser() === $this) {
+                $invoice->setUser(null);
+            }
+        }
 
         return $this;
     }

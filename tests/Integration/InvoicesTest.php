@@ -10,12 +10,24 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 class InvoicesTest extends KernelTestCase
 {
     /** @test */
-    public function it_has_an_amount_of_0_if_no_lines()
+    public function it_cant_create_an_invoice_without_a_user()
     {
         static::bootKernel();
 
         $em = static::$container->get(EntityManagerInterface::class);
 
+        $invoice = (new Invoice)
+            ->setDescription('MOCK_DESCRIPTION');
+
+        $this->expectException(\Doctrine\DBAL\Exception::class);
+
+        $em->persist($invoice);
+        $em->flush();
+    }
+
+    /** @test */
+    public function it_has_an_amount_of_0_if_no_lines()
+    {
         $invoice = (new Invoice)
             ->setDescription('MOCK_DESCRIPTION');
 
@@ -41,12 +53,9 @@ class InvoicesTest extends KernelTestCase
             ->setAmount(20)
             ->setDescription('MOCK_LINE_DESCRIPTION_2');
 
+        // It should work in both way : invoice->line / line->invoice
         $invoice->addLine($line);
         $line2->setInvoice($invoice);
-
-        $em->persist($invoice);
-        $em->persist($line);
-        $em->persist($line2);
 
         static::assertEquals(30, $invoice->getAmount());
     }

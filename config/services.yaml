@@ -38,3 +38,12 @@ services:
           event: 'prePersist',
         },
       ]
+  App\Doctrine\Listener\AssignUserToInvoiceListener:
+    tags:
+      [
+        {
+          name: 'doctrine.orm.entity_listener',
+          entity: 'App\Entity\Invoice',
+          event: 'prePersist',
+        },
+      ]
