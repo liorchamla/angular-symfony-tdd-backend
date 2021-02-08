@@ -3,6 +3,7 @@
 namespace App\Doctrine\Listener;
 
 use App\Entity\Invoice;
+use App\Entity\User;
 use Symfony\Component\Security\Core\Security;
 
 class AssignUserToInvoiceListener
@@ -14,8 +15,9 @@ class AssignUserToInvoiceListener
         $this->security = $security;
     }
 
-    public function prePersist(Invoice $invoice)
+    public function prePersist(Invoice $invoice): void
     {
+        /** @var User|null */
         $user = $this->security->getUser();
 
         if (!$user) {

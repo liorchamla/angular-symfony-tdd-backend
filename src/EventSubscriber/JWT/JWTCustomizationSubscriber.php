@@ -12,7 +12,10 @@ use Symfony\Component\Security\Core\Security;
 class JWTCustomizationSubscriber implements EventSubscriberInterface
 {
 
-    public static function getSubscribedEvents()
+    /**
+     * @return array<string,mixed>
+     */
+    public static function getSubscribedEvents(): array
     {
         return [
             'lexik_jwt_authentication.on_jwt_created' => 'pushUserExtraDataInsideToken',
@@ -20,14 +23,14 @@ class JWTCustomizationSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function customizeFailureResponse(AuthenticationFailureEvent $e)
+    public function customizeFailureResponse(AuthenticationFailureEvent $e): void
     {
         $e->setResponse(new JsonResponse([
             'message' => "Impossible de se connecter avec ces informations"
         ], 401));
     }
 
-    public function pushUserExtraDataInsideToken(JWTCreatedEvent $e)
+    public function pushUserExtraDataInsideToken(JWTCreatedEvent $e): void
     {
         $payload = $e->getData();
 

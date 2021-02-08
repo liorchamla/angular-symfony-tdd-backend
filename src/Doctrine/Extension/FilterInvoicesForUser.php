@@ -19,8 +19,21 @@ class FilterInvoicesForUser implements QueryCollectionExtensionInterface, QueryI
         $this->security = $security;
     }
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?string $operationName = null)
-    {
+
+    /**
+     * Makes sure that invoices visibles through API are owned by the authenticated user
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param QueryNameGeneratorInterface $queryNameGenerator
+     * @param string $resourceClass
+     * @param string|null $operationName
+     */
+    public function applyToCollection(
+        QueryBuilder $queryBuilder,
+        QueryNameGeneratorInterface $queryNameGenerator,
+        string $resourceClass,
+        ?string $operationName = null
+    ): void {
         if ($resourceClass !== Invoice::class) {
             return;
         }
@@ -31,8 +44,24 @@ class FilterInvoicesForUser implements QueryCollectionExtensionInterface, QueryI
             ->setParameter('user', $this->security->getUser());
     }
 
-    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?string $operationName = null, array $context = [])
-    {
+    /**
+     * Makes sure that invoices visibles through API are owned by the authenticated user
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param QueryNameGeneratorInterface $queryNameGenerator
+     * @param string $resourceClass
+     * @param array<int,string> $identifiers
+     * @param string|null $operationName
+     * @param array<string,string> $context
+     */
+    public function applyToItem(
+        QueryBuilder $queryBuilder,
+        QueryNameGeneratorInterface $queryNameGenerator,
+        string $resourceClass,
+        array $identifiers,
+        ?string $operationName = null,
+        array $context = []
+    ): void {
         if ($resourceClass !== Invoice::class) {
             return;
         }

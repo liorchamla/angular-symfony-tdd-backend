@@ -16,7 +16,7 @@ class UserPasswordEncodingListener
         $this->encoder = $encoder;
     }
 
-    public function prePersist(User $user)
+    public function prePersist(User $user): void
     {
         if (!$user->getPlainPassword()) {
             throw new LogicException("You can't persist a User without setting a plain password !");

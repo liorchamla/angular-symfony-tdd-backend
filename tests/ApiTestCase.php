@@ -7,16 +7,25 @@ use App\Entity\User;
 use App\Repository\InvoiceRepository;
 use App\Repository\UserRepository;
 use LogicException;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\BrowserKitAssertionsTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DomCrawler\Crawler;
 
 class ApiTestCase extends WebTestCase
 {
 
+
     protected static ?KernelBrowser $client;
+
+    /**
+     * @var array<string,string>
+     */
     protected static array $headers = ['CONTENT_TYPE' => 'application/json'];
+
     protected static ?string $jwt = null;
 
     protected function setUp(): void
@@ -25,7 +34,10 @@ class ApiTestCase extends WebTestCase
         static::$jwt = null;
     }
 
-    protected static function assertJsonResponse()
+    /**
+     * Asserts that the response has the good content AND content-type
+     */
+    protected static function assertJsonResponse(): void
     {
         static::ensureClientIsBooted();
 
@@ -39,6 +51,12 @@ class ApiTestCase extends WebTestCase
         static::assertContains(self::$client->getResponse()->headers->get('Content-Type'), $availableContentTypes);
     }
 
+    /**
+     * Get data as decoded with the JSON Response
+     *
+     * @return array<int,\stdClass>|\stdClass Decoded data
+     * @throws LogicException Will throw if we have not client booted
+     */
     protected static function getJsonResponseData()
     {
         static::ensureClientIsBooted();
@@ -46,34 +64,51 @@ class ApiTestCase extends WebTestCase
         return json_decode(static::$client->getResponse()->getContent());
     }
 
-    protected static function getRandomUserEmail(): string
-    {
-        $emails = [
-            'jerome@mail.com',
-            'anne@mail.com'
-        ];
-
-        return $emails[mt_rand(0, 1)];
-    }
-
+    /**
+     * Sets up a JWT so the next request will be authenticated with Authorization: Bearer
+     *
+     * @param User|null $user
+     *
+     * @return User
+     *
+     * @throws LogicException
+     * @throws ServiceCircularReferenceException
+     * @throws ServiceNotFoundException
+     */
     protected static function actAsAuthenticated(User $user = null): User
     {
         static::ensureClientIsBooted();
 
         if (!$user) {
-            $user = self::$container->get(UserRepository::class)->findOneBy(['email' => static::getRandomUserEmail()]);
+            $user = static::getRandomUser();
         }
 
-        static::$jwt = self::$container->get('lexik_jwt_authentication.jwt_manager')->create($user);
+        static::$jwt = static::$container->get('lexik_jwt_authentication.jwt_manager')->create($user);
 
         return $user;
     }
 
-    protected static function actAsAnonymous()
+    /**
+     * Unset the JWT so the next request will be anonymous
+     */
+    protected static function actAsAnonymous(): void
     {
         static::$jwt = null;
     }
 
+    /**
+     * Sends a JSON request
+     *
+     * @param string $method
+     * @param string $url
+     * @param array<string,string> $data
+     * @param array<string,string> $headers
+     *
+     * @return Crawler
+     *
+     * @throws LogicException
+     * @throws RuntimeException
+     */
     protected static function jsonRequest(string $method, string $url, array $data = [], array $headers = []): Crawler
     {
         static::ensureClientIsBooted();
@@ -86,7 +121,7 @@ class ApiTestCase extends WebTestCase
             $headers['HTTP_Authorization'] = 'Bearer ' . static::$jwt;
         }
 
-        $crawler = static::$client->request(
+        return static::$client->request(
             $method,
             $url,
             [],
@@ -94,10 +129,15 @@ class ApiTestCase extends WebTestCase
             $headers,
             json_encode($data)
         );
-
-        return $crawler;
     }
 
+    /**
+     * Retrieve a user from the database with its id
+     *
+     * @param integer $id
+     *
+     * @return User|null
+     */
     protected static function getUserById(int $id): ?User
     {
         static::ensureClientIsBooted();
@@ -105,6 +145,13 @@ class ApiTestCase extends WebTestCase
         return static::$container->get(UserRepository::class)->find($id);
     }
 
+    /**
+     * Retrieve a user in the database with its email
+     *
+     * @param string $email
+     *
+     * @return User|null
+     */
     protected static function getUserByEmail(string $email): ?User
     {
         static::ensureClientIsBooted();
@@ -112,6 +159,11 @@ class ApiTestCase extends WebTestCase
         return static::$container->get(UserRepository::class)->findOneBy(['email' => $email]);
     }
 
+    /**
+     * Retrieve a random user in the database
+     *
+     * @return User
+     */
     protected static function getRandomUser(): User
     {
         static::ensureClientIsBooted();
@@ -121,6 +173,11 @@ class ApiTestCase extends WebTestCase
         return static::$container->get(UserRepository::class)->findOneBy([], ["fullName" => $direction]);
     }
 
+    /**
+     * Retrieve a random invoice from the database
+     *
+     * @return Invoice|null
+     */
     protected static function getRandomInvoice(): ?Invoice
     {
         static::ensureClientIsBooted();
@@ -130,10 +187,17 @@ class ApiTestCase extends WebTestCase
         return static::$container->get(InvoiceRepository::class)->findOneBy([], ["createdAt" => $direction]);
     }
 
-    private static function ensureClientIsBooted()
+    /**
+     * Makes sure that the client is booted and throws an exception otherwise
+     *
+     * @throws LogicException
+     */
+    private static function ensureClientIsBooted(): void
     {
         if (!static::$client) {
-            throw new LogicException('Vous ne pouvez pas utiliser static::$client. N\'oubliez pas d\'appeler le setUp() !');
+            throw new LogicException(
+                'Vous ne pouvez pas utiliser static::$client. N\'oubliez pas d\'appeler le setUp() !'
+            );
         }
     }
 }

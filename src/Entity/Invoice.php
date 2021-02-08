@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -26,32 +27,33 @@ class Invoice
      * @ORM\Column(type="integer")
      * @Groups("invoiceRead")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"invoiceRead", "invoiceWrite"})
      */
-    private $description;
+    private ?string $description;
 
     /**
      * @ORM\Column(type="datetime")
      * @Groups("invoiceRead")
      */
-    private $createdAt;
+    private ?DateTimeInterface $createdAt;
 
     /**
      * @ORM\OneToMany(targetEntity=InvoiceLine::class, mappedBy="invoice", orphanRemoval=true, cascade={"PERSIST"})
      * @Groups({"invoiceRead", "invoiceWrite"})
+     * @var Collection<int,InvoiceLine>
      */
-    private $lines;
+    private Collection $lines;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="invoices")
      * @ORM\JoinColumn(nullable=false)
      * @Groups({"invoiceRead"})
      */
-    private $user;
+    private ?User $user;
 
     public function __construct()
     {
@@ -61,7 +63,7 @@ class Invoice
     /**
      * @ORM\PrePersist
      */
-    public function prePersist()
+    public function prePersist(): void
     {
         if (!$this->createdAt) {
             $this->createdAt = new DateTime();
@@ -106,7 +108,7 @@ class Invoice
     }
 
     /**
-     * @return Collection|InvoiceLine[]
+     * @return Collection<int,InvoiceLine>|InvoiceLine[]
      */
     public function getLines(): Collection
     {

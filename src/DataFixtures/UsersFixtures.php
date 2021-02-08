@@ -10,14 +10,13 @@ use Faker\Factory;
 class UsersFixtures extends Fixture
 {
 
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
         $manager->persist((new User)
                 ->setEmail("admin@mail.com")
                 ->setPlainPassword("p4ssword")
                 ->setFullName("admin")
-                ->setRoles(['ROLE_ADMIN'])
-        );
+                ->setRoles(['ROLE_ADMIN']));
 
         $manager->persist((new User)
             ->setEmail("jerome@mail.com")

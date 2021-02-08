@@ -239,6 +239,9 @@
     "phpspec/prophecy": {
         "version": "1.12.2"
     },
+    "phpstan/phpstan": {
+        "version": "0.12.73"
+    },
     "phpunit/php-code-coverage": {
         "version": "9.2.5"
     },
@@ -339,6 +342,18 @@
     },
     "spatie/phpunit-watcher": {
         "version": "1.23.1"
+    },
+    "squizlabs/php_codesniffer": {
+        "version": "3.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "3.0",
+            "ref": "0dc9cceda799fd3a08b96987e176a261028a3709"
+        },
+        "files": [
+            "./phpcs.xml.dist"
+        ]
     },
     "symfony/asset": {
         "version": "v5.2.3"

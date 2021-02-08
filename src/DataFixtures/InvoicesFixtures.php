@@ -25,14 +25,14 @@ class InvoicesFixtures extends Fixture implements DependentFixtureInterface
         $this->faker = Factory::create('fr_FR');
     }
 
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             UsersFixtures::class
         ];
     }
 
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
         $this->manager = $manager;
 
@@ -45,7 +45,7 @@ class InvoicesFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
-    protected function createInvoicesForUser(int $count, User $user)
+    protected function createInvoicesForUser(int $count, User $user): void
     {
         for ($i = 0; $i < $count; $i++) {
             $invoice = (new Invoice())

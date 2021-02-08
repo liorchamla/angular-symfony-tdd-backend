@@ -17,7 +17,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *  normalizationContext={"groups":{"userRead"}}
  * )
  * @UniqueEntity(
- *      fields={"email"}, 
+ *      fields={"email"},
  *      message="Vous ne pouvez pas créer un compte avec cette adresse email"
  * )
  */
@@ -28,38 +28,42 @@ class User implements UserInterface
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"userRead", "invoiceRead"})
      */
-    private $fullName;
+    private ?string $fullName;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"userRead", "invoiceRead"})
      */
-    private $email;
+    private ?string $email;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $password;
+    private ?string $password;
 
-    private $plainPassword;
+    private ?string $plainPassword;
 
     /**
      * @ORM\Column(type="array", nullable=true)
      * @Groups({"userRead", "invoiceRead"})
+     *
+     * @var array<string>
      */
-    private $roles = [];
+    private array $roles = [];
 
     /**
      * @ORM\OneToMany(targetEntity=Invoice::class, mappedBy="user", orphanRemoval=true)
      * @Groups({"userRead"})
+     *
+     * @var Collection<int,Invoice>
      */
-    private $invoices;
+    private Collection $invoices;
 
     public function __construct()
     {
@@ -73,23 +77,24 @@ class User implements UserInterface
         return $this->invoices->get($random);
     }
 
-    public function getRoles()
+    public function getRoles(): array
     {
         $this->roles[] = 'ROLE_USER';
 
         return array_unique($this->roles);
     }
 
-    public function getSalt()
+    public function getSalt(): ?string
     {
+        return null;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
         return $this->email;
     }
 
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
     }
 
@@ -146,6 +151,9 @@ class User implements UserInterface
         return $this;
     }
 
+    /**
+     * @param array<string>|null $roles
+     */
     public function setRoles(?array $roles = []): self
     {
         $this->roles = $roles;
@@ -154,7 +162,7 @@ class User implements UserInterface
     }
 
     /**
-     * @return Collection|Invoice[]
+     * @return Collection<int,Invoice>|Invoice[]
      */
     public function getInvoices(): Collection
     {

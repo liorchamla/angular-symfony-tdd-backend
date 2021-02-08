@@ -21,27 +21,27 @@ class InvoiceLine
      * @ORM\Column(type="integer")
      * @Groups("invoiceRead")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\Column(type="integer")
      * @Groups({"invoiceRead", "invoiceWrite"})
      */
-    private $amount;
+    private ?int $amount;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"invoiceRead", "invoiceWrite"})
      */
-    private $description;
+    private ?string $description;
 
     /**
      * @ORM\ManyToOne(targetEntity=Invoice::class, inversedBy="lines")
      * @ORM\JoinColumn(nullable=false)
-     * 
+     *
      * @Groups({"invoiceWrite"})
      */
-    private $invoice;
+    private ?Invoice $invoice;
 
     public function getId(): ?int
     {
