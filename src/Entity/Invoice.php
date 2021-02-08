@@ -10,6 +10,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=InvoiceRepository::class)
@@ -32,6 +33,7 @@ class Invoice
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"invoiceRead", "invoiceWrite"})
+     * @Assert\NotBlank(message="La description est obligatoire !")
      */
     private ?string $description;
 
@@ -65,7 +67,7 @@ class Invoice
      */
     public function prePersist(): void
     {
-        if (!$this->createdAt) {
+        if (empty($this->createdAt)) {
             $this->createdAt = new DateTime();
         }
     }

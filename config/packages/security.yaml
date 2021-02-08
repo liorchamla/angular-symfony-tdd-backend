@@ -46,5 +46,11 @@ security:
   # Note: Only the *first* access control that matches will be used
   access_control:
     - { path: ^/api/invoices, roles: ROLE_USER }
+    - {
+        path: ^/api/users,
+        methods: [POST],
+        roles: IS_AUTHENTICATED_ANONYMOUSLY,
+      }
+    - { path: ^/api/users, methods: [PUT, DELETE, GET], roles: ROLE_USER }
     # - { path: ^/admin, roles: ROLE_ADMIN }
     # - { path: ^/profile, roles: ROLE_USER }

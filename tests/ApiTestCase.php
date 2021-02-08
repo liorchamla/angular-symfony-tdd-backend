@@ -6,8 +6,10 @@ use App\Entity\Invoice;
 use App\Entity\User;
 use App\Repository\InvoiceRepository;
 use App\Repository\UserRepository;
+use Exception;
 use LogicException;
 use RuntimeException;
+use stdClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\BrowserKitAssertionsTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -131,6 +133,31 @@ class ApiTestCase extends WebTestCase
         );
     }
 
+    protected static function getViolation(string $propertyPath): ?stdClass
+    {
+        static::ensureClientIsBooted();
+
+        $json = static::getJsonResponseData();
+
+        if (!$json) {
+            throw new LogicException("No JSON data found, have u really made a JSON Request ?");
+        }
+
+        try {
+            $violations = $json->violations;
+
+            foreach ($violations as $violation) {
+                if ($violation->propertyPath === $propertyPath) {
+                    return $violation;
+                }
+            }
+
+            return null;
+        } catch (Exception $e) {
+            throw new LogicException("No violations were found in this call");
+        }
+    }
+
     /**
      * Retrieve a user from the database with its id
      *
@@ -192,7 +219,7 @@ class ApiTestCase extends WebTestCase
      *
      * @throws LogicException
      */
-    private static function ensureClientIsBooted(): void
+    protected static function ensureClientIsBooted(): void
     {
         if (!static::$client) {
             throw new LogicException(

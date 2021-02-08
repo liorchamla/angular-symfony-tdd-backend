@@ -10,15 +10,25 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @ApiResource(
- *  normalizationContext={"groups":{"userRead"}}
+ *  normalizationContext={"groups":{"userRead"}},
+ *  itemOperations={
+ *      "put":{"validation_groups"={"profile"}},
+ *      "get",
+ *      "delete"
+ *  },
+ *  collectionOperations={
+ *      "post":{"validation_groups"={"registration"}}
+ *  }
  * )
  * @UniqueEntity(
  *      fields={"email"},
- *      message="Vous ne pouvez pas créer un compte avec cette adresse email"
+ *      message="Vous ne pouvez pas créer un compte avec cette adresse email",
+ *      groups={"registration", "profile"}
  * )
  */
 class User implements UserInterface
@@ -33,12 +43,15 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"userRead", "invoiceRead"})
+     * @Assert\NotBlank(message="Le nom complet est obligatoire !", groups={"registration","profile"})
      */
     private ?string $fullName;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"userRead", "invoiceRead"})
+     * @Assert\NotBlank(message="L'adresse email est obligatoire !", groups={"registration","profile"})
+     * @Assert\Email(message="L'adresse email soumise n'est pas au format réglementaire", groups={"registration","profile"})
      */
     private ?string $email;
 
@@ -47,6 +60,9 @@ class User implements UserInterface
      */
     private ?string $password;
 
+    /**
+     * @Assert\NotBlank(message="Le mot de passe est obligatoire !", groups={"registration"})
+     */
     private ?string $plainPassword;
 
     /**

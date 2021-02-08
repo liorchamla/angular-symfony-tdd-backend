@@ -39,10 +39,10 @@ class UsersTest extends ApiTestCase
     }
 
     /** @test */
-    public function it_can_edit_a_user()
+    public function it_can_edit_the_authenticated_user()
     {
         // Given we have a user in the database
-        $user = static::getRandomUser();
+        $user = static::actAsAuthenticated();
 
         // And an updated data
         $updatedData = [
@@ -69,10 +69,11 @@ class UsersTest extends ApiTestCase
     }
 
     /** @test */
-    public function it_can_remove_a_user()
+    public function it_can_remove_a_user_as_the_same_authenticated_user()
     {
         // Given we have a user in the database
-        $user = static::getRandomUser();
+        $user = static::actAsAuthenticated();
+
         $userId = $user->getId();
 
         // When we call /api/users/{id} with method DELETE
@@ -84,29 +85,5 @@ class UsersTest extends ApiTestCase
         // And the user should not be in the database anymore
         $deletedUser = static::getUserById($userId);
         static::assertNull($deletedUser);
-    }
-
-    /** @test */
-    public function it_cant_register_a_user_if_email_is_already_taken()
-    {
-        // Given we have a user with email "jerome@mail.com" in the database
-        $jerome = static::getUserByEmail('jerome@mail.com');
-
-        // And an other user who wants to register the same email
-        $data = [
-            'email' => 'jerome@mail.com',
-            'plainPassword' => 'password',
-            'fullName' => 'Jérome Autre'
-        ];
-
-        // When we call /api/users with POST method
-        static::jsonRequest('POST', '/api/users', $data);
-
-        // Then the response should be 400 and contain JSON
-        static::assertGreaterThanOrEqual(400, static::$client->getResponse()->getStatusCode());
-        static::assertJsonResponse();
-
-        // And contains "Vous ne pouvez pas créer un compte avec cette adresse email"
-        static::assertStringContainsString("Vous ne pouvez pas créer un compte avec cette adresse email", static::$client->getResponse()->getContent());
     }
 }
